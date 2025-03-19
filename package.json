@@ -1,0 +1,23 @@
+{
+  "name": "up2120491_cw",
+  "version": "1.0.0",
+  "description": "Web Programming Coursework",
+  "main": "svr.js",
+  "type": "module",
+  "scripts": {
+    "index": "node --watch svr && cd client"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/TahmidGithub/coursework.git"
+  },
+  "author": "Tahmid Mia",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/TahmidGithub/coursework/issues"
+  },
+  "homepage": "https://github.com/TahmidGithub/coursework#readme",
+  "dependencies": {
+    "express": "^4.21.2"
+  }
+}

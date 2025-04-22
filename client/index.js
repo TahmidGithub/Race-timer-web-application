@@ -27,7 +27,6 @@ function saveState() {
   localStorage.setItem('isRunning', isRunning);
   localStorage.setItem('lapCount', lapCount);
 
-  // Save lap list with Racer ID values
   const lapsData = Array.from(lapContainer.children).map(li => {
     const label = li.querySelector('span')?.textContent || '';
     const input = li.querySelector('input')?.value || '';
@@ -45,28 +44,10 @@ function saveState() {
 function loadState() {
   if (localStorage.getItem('laps')) {
     const laps = JSON.parse(localStorage.getItem('laps'));
-    lapContainer.innerHTML = ''; // Clear previous
+    lapContainer.innerHTML = '';
 
     laps.forEach(({ label, racerId }) => {
-      const lapItem = document.createElement('li');
-
-      const span = document.createElement('span');
-      span.textContent = label;
-
-      const input = document.createElement('input');
-      input.type = 'text';
-      input.placeholder = 'Enter Racer ID';
-      input.style.marginLeft = '10px';
-      input.value = racerId;
-
-      input.addEventListener('blur', saveState);
-      input.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter') input.blur();
-      });
-
-      lapItem.appendChild(span);
-      lapItem.appendChild(input);
-      lapContainer.appendChild(lapItem);
+      lapContainer.appendChild(createLapFromTemplate(label, racerId));
     });
   }
 
@@ -117,28 +98,26 @@ function recordLap() {
   const lapTime = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}:${String(milliseconds).padStart(2, '0')}`;
 
   lapCount++;
+  const label = `Lap ${lapCount}: ${lapTime}`;
+  lapContainer.appendChild(createLapFromTemplate(label));
+  saveState();
+}
 
-  const lapItem = document.createElement('li');
+function createLapFromTemplate(labelText, racerId = '') {
+  const template = document.querySelector('#lap-template');
+  const clone = template.content.cloneNode(true);
+  const span = clone.querySelector('.lap-label');
+  const input = clone.querySelector('input');
 
-  const label = document.createElement('span');
-  label.textContent = `Lap ${lapCount}: ${lapTime} `;
-
-  const input = document.createElement('input');
-  input.type = 'text';
-  input.placeholder = 'Enter Racer ID';
-  input.style.marginLeft = '10px';
-  input.value = '';
+  span.textContent = labelText;
+  input.value = racerId;
 
   input.addEventListener('blur', saveState);
   input.addEventListener('keydown', (e) => {
     if (e.key === 'Enter') input.blur();
   });
 
-  lapItem.appendChild(label);
-  lapItem.appendChild(input);
-  lapContainer.appendChild(lapItem);
-
-  saveState();
+  return clone;
 }
 
 document.addEventListener('DOMContentLoaded', loadState);

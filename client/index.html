@@ -1,23 +1,26 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Race Timer</title>
-    <style>
-        body { font-family: Arial, sans-serif; text-align: center; }
-        #timer { font-size: 2em; margin: 20px; }
-        button { margin: 5px; padding: 10px; font-size: 1em; cursor: pointer; }
-        ul { list-style: none; padding: 0; }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Race Timer</title>
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-    <h1>Race Timer</h1>
-    <div id="timer">00:00:00:00</div>
-    <button id="start">Start</button>
-    <button id="reset">End</button>
-    <ul id="laps"></ul>
+  <h1>Race Timer</h1>
+  <time id="timer">00:00:00:00</time>
+  <button id="start">Start</button>
+  <button id="reset">End</button>
+  <ul id="laps"></ul>
 
-    <script src="index.js"></script>
+  <!-- Lap Template -->
+  <template id="lap-template">
+    <li>
+      <span class="lap-label"></span>
+      <input type="text" placeholder="Enter Racer ID" style="margin-left: 10px;" />
+    </li>
+  </template>
+
+  <script src="index.js"></script>
 </body>
 </html>

@@ -27,7 +27,7 @@ function saveState() {
   localStorage.setItem('isRunning', isRunning);
   localStorage.setItem('lapCount', lapCount);
 
-  // Save lap list HTML with Racer ID values
+  // Save lap list with Racer ID values
   const lapsData = Array.from(lapContainer.children).map(li => {
     const label = li.querySelector('span')?.textContent || '';
     const input = li.querySelector('input')?.value || '';
@@ -42,11 +42,34 @@ function saveState() {
   }
 }
 
-
 function loadState() {
   if (localStorage.getItem('laps')) {
-    lapContainer.innerHTML = localStorage.getItem('laps');
+    const laps = JSON.parse(localStorage.getItem('laps'));
+    lapContainer.innerHTML = ''; // Clear previous
+
+    laps.forEach(({ label, racerId }) => {
+      const lapItem = document.createElement('li');
+
+      const span = document.createElement('span');
+      span.textContent = label;
+
+      const input = document.createElement('input');
+      input.type = 'text';
+      input.placeholder = 'Enter Racer ID';
+      input.style.marginLeft = '10px';
+      input.value = racerId;
+
+      input.addEventListener('blur', saveState);
+      input.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') input.blur();
+      });
+
+      lapItem.appendChild(span);
+      lapItem.appendChild(input);
+      lapContainer.appendChild(lapItem);
+    });
   }
+
   if (isRunning && startTime) {
     const now = Date.now();
     elapsedTime += now - startTime;
@@ -54,6 +77,7 @@ function loadState() {
     timer = setInterval(updateDisplay, 10);
     startBtn.textContent = 'Lap';
   }
+
   updateDisplay();
 }
 
@@ -96,21 +120,18 @@ function recordLap() {
 
   const lapItem = document.createElement('li');
 
-  // Create lap label
   const label = document.createElement('span');
   label.textContent = `Lap ${lapCount}: ${lapTime} `;
 
-  // Create Racer ID input
   const input = document.createElement('input');
   input.type = 'text';
   input.placeholder = 'Enter Racer ID';
   input.style.marginLeft = '10px';
-  input.value = ''; // Default value if none yet
+  input.value = '';
 
-  // Save on input blur or Enter key
   input.addEventListener('blur', saveState);
   input.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter') input.blur(); // Save on Enter
+    if (e.key === 'Enter') input.blur();
   });
 
   lapItem.appendChild(label);
@@ -119,7 +140,6 @@ function recordLap() {
 
   saveState();
 }
-
 
 document.addEventListener('DOMContentLoaded', loadState);
 startBtn.addEventListener('click', startTimer);

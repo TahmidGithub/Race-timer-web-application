@@ -66,7 +66,7 @@ let lapCount = localStorage.getItem('lapCount') ? parseInt(localStorage.getItem(
 const display = document.querySelector('#timer');
 const startBtn = document.querySelector('#start');
 const resetBtn = document.querySelector('#reset');
-const lapContainer = document.querySelector('#laps');
+const lapContainer = document.querySelector('#Time');
 
 function updateDisplay() {
   let time = elapsedTime;
@@ -91,7 +91,7 @@ function saveState() {
     const input = li.querySelector('input')?.value || '';
     return { label, racerId: input };
   });
-  localStorage.setItem('laps', JSON.stringify(lapsData));
+  localStorage.setItem('Time', JSON.stringify(lapsData));
 
   if (isRunning) {
     localStorage.setItem('startTime', startTime);
@@ -101,8 +101,8 @@ function saveState() {
 }
 
 function loadState() {
-  if (localStorage.getItem('laps')) {
-    const laps = JSON.parse(localStorage.getItem('laps'));
+  if (localStorage.getItem('Time')) {
+    const laps = JSON.parse(localStorage.getItem('Time'));
     lapContainer.innerHTML = '';
     laps.forEach(({ label, racerId }) => {
       lapContainer.appendChild(createLapFromTemplate(label, racerId));
@@ -114,7 +114,7 @@ function loadState() {
     elapsedTime += now - startTime;
     startTime = now;
     timer = setInterval(updateDisplay, 10);
-    startBtn.textContent = 'Lap';
+    startBtn.textContent = 'Time';
   }
 
   updateDisplay();
@@ -124,7 +124,7 @@ function startTimer() {
   if (!isRunning) {
     startTime = Date.now();
     timer = setInterval(updateDisplay, 10);
-    startBtn.textContent = 'Lap';
+    startBtn.textContent = 'Time';
     isRunning = true;
   } else {
     recordLap();
@@ -156,7 +156,7 @@ function recordLap() {
   const lapTime = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}:${String(milliseconds).padStart(2, '0')}`;
 
   lapCount++;
-  const label = `Lap ${lapCount}: ${lapTime}`;
+  const label = `Time ${lapCount}: ${lapTime}`;
   lapContainer.appendChild(createLapFromTemplate(label));
   saveState();
 }

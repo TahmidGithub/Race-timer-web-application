@@ -1,7 +1,18 @@
-// message board app
-// stage 1: basic web server
 import express from 'express';
+import path from 'path';
+import { fileURLToPath } from 'url';
 
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
-app.use(express.static('client'));
-app.listen(8080);
+const PORT = 8080;
+
+app.use(express.static(path.join(__dirname, 'client')));
+
+// Serve index.html for all SPA routes
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, 'client/index.html'));
+});
+
+app.listen(PORT, () => {
+  console.log(`Server running at http://localhost:${PORT}`);
+});

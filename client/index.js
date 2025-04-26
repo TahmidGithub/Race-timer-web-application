@@ -1,3 +1,62 @@
+const routes = {
+  '/': 'welcome-view',
+  '/race': 'timer-view',
+  '/racer': 'racer-view',
+};
+
+function navigate(path) {
+  history.pushState({}, '', path);
+  handleRoute(path);
+}
+
+function handleRoute(path = location.pathname) {
+  document.querySelectorAll('section[data-route]').forEach(section => {
+    section.style.display = 'none';
+  });
+
+  const viewId = routes[path] || routes['/'];
+  document.getElementById(viewId).style.display = 'block';
+
+  if (path === '/race') loadState();
+  if (path === '/racer') showRacerId();
+}
+
+function generateUniqueRacerId() {
+  let ids = JSON.parse(localStorage.getItem('racerIds') || '[]');
+  let newId;
+  do {
+    newId = Math.floor(1000 + Math.random() * 9000);
+  } while (ids.includes(newId));
+  ids.push(newId);
+  localStorage.setItem('racerIds', JSON.stringify(ids));
+  return newId;
+}
+
+function showRacerId() {
+  const display = document.getElementById('racer-id-display');
+  const id = localStorage.getItem('lastRacerId') || 'Unknown';
+  display.textContent = `Your Racer ID: ${id}`;
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  handleRoute();
+
+  window.onpopstate = () => handleRoute();
+
+  document.getElementById('go-to-race')?.addEventListener('click', () => {
+    navigate('/race');
+  });
+
+  document.getElementById('go-to-racer')?.addEventListener('click', () => {
+    const id = generateUniqueRacerId();
+    localStorage.setItem('lastRacerId', id);
+    navigate('/racer');
+  });
+
+  startBtn?.addEventListener('click', startTimer);
+  resetBtn?.addEventListener('click', endTimer);
+});
+
 let timer;
 let startTime = localStorage.getItem('startTime') ? parseInt(localStorage.getItem('startTime')) : null;
 let elapsedTime = localStorage.getItem('elapsedTime') ? parseInt(localStorage.getItem('elapsedTime')) : 0;
@@ -45,7 +104,6 @@ function loadState() {
   if (localStorage.getItem('laps')) {
     const laps = JSON.parse(localStorage.getItem('laps'));
     lapContainer.innerHTML = '';
-
     laps.forEach(({ label, racerId }) => {
       lapContainer.appendChild(createLapFromTemplate(label, racerId));
     });
@@ -119,7 +177,3 @@ function createLapFromTemplate(labelText, racerId = '') {
 
   return clone;
 }
-
-document.addEventListener('DOMContentLoaded', loadState);
-startBtn.addEventListener('click', startTimer);
-resetBtn.addEventListener('click', endTimer);

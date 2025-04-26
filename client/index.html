@@ -4,23 +4,40 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Race Timer</title>
+  <base href="/" />
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <h1>Race Timer</h1>
-  <time id="timer">00:00:00:00</time>
-  <button id="start">Start</button>
-  <button id="reset">End</button>
-  <ul id="laps"></ul>
 
-  <!-- Lap Template -->
-  <template id="lap-template">
-    <li>
-      <span class="lap-label"></span>
-      <input type="text" placeholder="Enter Racer ID" style="margin-left: 10px;" />
-    </li>
-  </template>
+  <!-- Welcome Screen -->
+  <section id="welcome-view" data-route="/">
+    <h1>Welcome to Race Timer</h1>
+    <button id="go-to-race">Login as Marshal</button>
+    <button id="go-to-racer">Login as Racer</button>
+  </section>
 
-  <script src="index.js"></script>
+  <!-- Racer Screen -->
+  <section id="racer-view" data-route="/racer" style="display: none;">
+    <h1>You are a Racer!</h1>
+    <p id="racer-id-display" style="font-size: 1.5em; font-weight: bold;"></p>
+  </section>
+
+  <!-- Race Timer Screen -->
+  <section id="timer-view" data-route="/race" style="display: none;">
+    <h1>Race Timer</h1>
+    <time id="timer">00:00:00:00</time>
+    <button id="start">Start</button>
+    <button id="reset">End & submit</button>
+    <ul id="laps"></ul>
+
+    <template id="lap-template">
+      <li>
+        <span class="lap-label"></span>
+        <input type="text" placeholder="Enter Racer ID" />
+      </li>
+    </template>
+  </section>
+
+  <script type="module" src="index.js"></script>
 </body>
 </html>

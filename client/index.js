@@ -15,7 +15,7 @@ function handleRoute(path = location.pathname) {
   });
 
   const viewId = routes[path] || routes['/'];
-  document.getElementById(viewId).style.display = 'block';
+  document.querySelector(`#${viewId}`).style.display = 'block';
 
   if (path === '/race') loadState();
   if (path === '/racer') showRacerId();
@@ -33,7 +33,7 @@ function generateUniqueRacerId() {
 }
 
 function showRacerId() {
-  const display = document.getElementById('racer-id-display');
+  const display = document.querySelector('#racer-id-display');
   const id = localStorage.getItem('lastRacerId') || 'Unknown';
   display.textContent = `Your Racer ID: ${id}`;
 }
@@ -43,11 +43,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
   window.onpopstate = () => handleRoute();
 
-  document.getElementById('go-to-race')?.addEventListener('click', () => {
+  document.querySelector('#go-to-race')?.addEventListener('click', () => {
     navigate('/race');
   });
 
-  document.getElementById('go-to-racer')?.addEventListener('click', () => {
+  document.querySelector('#go-to-racer')?.addEventListener('click', () => {
     const id = generateUniqueRacerId();
     localStorage.setItem('lastRacerId', id);
     navigate('/racer');

@@ -5,6 +5,9 @@ const routes = {
   '/racer': 'racer-view',
 };
 
+let lastLapResultsLength = 0;
+let racerPollingInterval = null;
+
 function navigate(path) {
   history.pushState({}, '', path);
   handleRoute(path);
@@ -18,8 +21,16 @@ function handleRoute(path = location.pathname) {
   const viewId = routes[path] || routes['/'];
   document.querySelector(`#${viewId}`).style.display = 'block';
 
-  if (path === '/race') loadState();
-  if (path === '/racer') showRacerId();
+  if (path === '/race') {
+    loadState();
+    stopRacerPolling();
+  }
+
+  if (path === '/racer') {
+    showRacerId();
+    loadRacerResults();
+    startRacerPolling();
+  }
 }
 
 // Racer ID Functions
@@ -132,16 +143,6 @@ function endTimer() {
   startBtn.textContent = 'Start Next Lap';
 }
 
-function endLapAuto() {
-  if (isRunning && startTime) {
-    elapsedTime += Date.now() - startTime;
-  }
-  clearInterval(timer);
-  isRunning = false;
-  startBtn.textContent = 'Start Next Lap';
-  saveLapResults();
-}
-
 function recordLap() {
   const time = isRunning && startTime ? Date.now() - startTime + elapsedTime : elapsedTime;
   const hours = Math.floor(time / 3600000);
@@ -217,6 +218,57 @@ function renderLapResults(resultsArray) {
   });
 }
 
+// Racer live update functions
+function loadRacerResults() {
+  const resultsContainer = document.querySelector('#racer-lap-results');
+  resultsContainer.innerHTML = '';
+
+  const lapResults = JSON.parse(localStorage.getItem('lapResults') || '[]');
+  lastLapResultsLength = lapResults.length;
+
+  if (lapResults.length === 0) {
+    resultsContainer.innerHTML = '<p>No lap results yet.</p>';
+    return;
+  }
+
+  lapResults.forEach((lapsData, index) => {
+    const section = document.createElement('section');
+    section.classList.add('racer-lap-section');
+
+    const title = document.createElement('h2');
+    title.textContent = `Lap ${index + 1} Results`;
+    section.appendChild(title);
+
+    const list = document.createElement('ul');
+    lapsData.forEach(({ label, racerId }) => {
+      const item = document.createElement('li');
+      item.textContent = `${label} - Racer ID: ${racerId}`;
+      list.appendChild(item);
+    });
+
+    section.appendChild(list);
+    resultsContainer.appendChild(section);
+  });
+}
+
+function startRacerPolling() {
+  stopRacerPolling();
+  racerPollingInterval = setInterval(() => {
+    const lapResults = JSON.parse(localStorage.getItem('lapResults') || '[]');
+    if (lapResults.length !== lastLapResultsLength) {
+      loadRacerResults();
+      lastLapResultsLength = lapResults.length;
+    }
+  }, 2000);
+}
+
+function stopRacerPolling() {
+  if (racerPollingInterval) {
+    clearInterval(racerPollingInterval);
+    racerPollingInterval = null;
+  }
+}
+
 // Initial Event Listeners
 document.addEventListener('DOMContentLoaded', () => {
   handleRoute();
@@ -236,10 +288,7 @@ document.addEventListener('DOMContentLoaded', () => {
   document.querySelector('#clear-results')?.addEventListener('click', () => {
     if (confirm('Are you sure you want to clear all lap results?')) {
       localStorage.removeItem('lapResults');
-  
-      // Remove all lap results sections from the page
       document.querySelectorAll('.lap-results').forEach(section => section.remove());
-  
       alert('Lap results cleared!');
     }
   });

@@ -1,3 +1,4 @@
+// Router
 const routes = {
   '/': 'welcome-view',
   '/race': 'timer-view',
@@ -21,6 +22,7 @@ function handleRoute(path = location.pathname) {
   if (path === '/racer') showRacerId();
 }
 
+// Racer ID Functions
 function generateUniqueRacerId() {
   let ids = JSON.parse(localStorage.getItem('racerIds') || '[]');
   let newId;
@@ -38,25 +40,7 @@ function showRacerId() {
   display.textContent = `Your Racer ID: ${id}`;
 }
 
-document.addEventListener('DOMContentLoaded', () => {
-  handleRoute();
-
-  window.onpopstate = () => handleRoute();
-
-  document.querySelector('#go-to-race')?.addEventListener('click', () => {
-    navigate('/race');
-  });
-
-  document.querySelector('#go-to-racer')?.addEventListener('click', () => {
-    const id = generateUniqueRacerId();
-    localStorage.setItem('lastRacerId', id);
-    navigate('/racer');
-  });
-
-  startBtn?.addEventListener('click', startTimer);
-  resetBtn?.addEventListener('click', endTimer);
-});
-
+// Timer Variables
 let timer;
 let startTime = localStorage.getItem('startTime') ? parseInt(localStorage.getItem('startTime')) : null;
 let elapsedTime = localStorage.getItem('elapsedTime') ? parseInt(localStorage.getItem('elapsedTime')) : 0;
@@ -68,6 +52,7 @@ const startBtn = document.querySelector('#start');
 const resetBtn = document.querySelector('#reset');
 const lapContainer = document.querySelector('#Time');
 
+// Timer Functions
 function updateDisplay() {
   let time = elapsedTime;
   if (isRunning && startTime) {
@@ -109,6 +94,11 @@ function loadState() {
     });
   }
 
+  if (localStorage.getItem('lapResults')) {
+    const results = JSON.parse(localStorage.getItem('lapResults'));
+    renderLapResults(results);
+  }
+
   if (isRunning && startTime) {
     const now = Date.now();
     elapsedTime += now - startTime;
@@ -135,16 +125,21 @@ function startTimer() {
 function endTimer() {
   if (isRunning && startTime) {
     elapsedTime += Date.now() - startTime;
+    clearInterval(timer);
+    isRunning = false;
+  }
+  saveLapResults();
+  startBtn.textContent = 'Start Next Lap';
+}
+
+function endLapAuto() {
+  if (isRunning && startTime) {
+    elapsedTime += Date.now() - startTime;
   }
   clearInterval(timer);
-  elapsedTime = 0;
   isRunning = false;
-  lapCount = 0;
-  startTime = null;
-  display.textContent = '00:00:00:00';
-  lapContainer.innerHTML = '';
-  startBtn.textContent = 'Start';
-  localStorage.clear();
+  startBtn.textContent = 'Start Next Lap';
+  saveLapResults();
 }
 
 function recordLap() {
@@ -177,3 +172,78 @@ function createLapFromTemplate(labelText, racerId = '') {
 
   return clone;
 }
+
+function saveLapResults() {
+  const lapsData = Array.from(lapContainer.children).map(li => {
+    const label = li.querySelector('span')?.textContent || '';
+    const racerId = li.querySelector('input')?.value || '';
+    return { label, racerId };
+  });
+
+  const results = JSON.parse(localStorage.getItem('lapResults') || '[]');
+  results.push(lapsData);
+  localStorage.setItem('lapResults', JSON.stringify(results));
+
+  renderLapResults([lapsData]);
+
+  elapsedTime = 0;
+  startTime = null;
+  lapCount = 0;
+  lapContainer.innerHTML = '';
+  display.textContent = '00:00:00:00';
+
+  saveState();
+}
+
+function renderLapResults(resultsArray) {
+  resultsArray.forEach((lapsData, index) => {
+    const resultSection = document.createElement('section');
+    resultSection.classList.add('lap-results');
+
+    const lapTitle = document.createElement('h2');
+    lapTitle.textContent = `Lap ${document.querySelectorAll('.lap-results').length + 1} Results`;
+
+    const resultList = document.createElement('ul');
+    lapsData.forEach(({ label, racerId }) => {
+      const li = document.createElement('li');
+      li.textContent = `${label} - Racer ID: ${racerId}`;
+      resultList.appendChild(li);
+    });
+
+    resultSection.appendChild(lapTitle);
+    resultSection.appendChild(resultList);
+
+    document.body.appendChild(resultSection);
+  });
+}
+
+// Initial Event Listeners
+document.addEventListener('DOMContentLoaded', () => {
+  handleRoute();
+
+  window.onpopstate = () => handleRoute();
+
+  document.querySelector('#go-to-race')?.addEventListener('click', () => {
+    navigate('/race');
+  });
+
+  document.querySelector('#go-to-racer')?.addEventListener('click', () => {
+    const id = generateUniqueRacerId();
+    localStorage.setItem('lastRacerId', id);
+    navigate('/racer');
+  });
+
+  document.querySelector('#clear-results')?.addEventListener('click', () => {
+    if (confirm('Are you sure you want to clear all lap results?')) {
+      localStorage.removeItem('lapResults');
+  
+      // Remove all lap results sections from the page
+      document.querySelectorAll('.lap-results').forEach(section => section.remove());
+  
+      alert('Lap results cleared!');
+    }
+  });
+
+  startBtn?.addEventListener('click', startTimer);
+  resetBtn?.addEventListener('click', endTimer);
+});

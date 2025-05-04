@@ -1,4 +1,3 @@
-// Router
 const routes = {
   '/': 'welcome-view',
   '/race': 'timer-view',
@@ -47,7 +46,7 @@ function generateUniqueRacerId() {
 
 function showRacerId() {
   const display = document.querySelector('#racer-id-display');
-  const id = localStorage.getItem('lastRacerId') || 'Unknown';
+  const id = sessionStorage.getItem('sessionRacerId') || 'Unknown';
   display.textContent = `Your Racer ID: ${id}`;
 }
 
@@ -63,7 +62,6 @@ const startBtn = document.querySelector('#start');
 const resetBtn = document.querySelector('#reset');
 const lapContainer = document.querySelector('#Time');
 
-// Timer Functions
 function updateDisplay() {
   let time = elapsedTime;
   if (isRunning && startTime) {
@@ -202,7 +200,7 @@ function renderLapResults(resultsArray) {
     resultSection.classList.add('lap-results');
 
     const lapTitle = document.createElement('h2');
-    lapTitle.textContent = `Lap ${document.querySelectorAll('.lap-results').length + 1} Results`;
+    lapTitle.textContent = `Race ${document.querySelectorAll('.lap-results').length + 1} Results`;
 
     const resultList = document.createElement('ul');
     lapsData.forEach(({ label, racerId }) => {
@@ -218,29 +216,42 @@ function renderLapResults(resultsArray) {
   });
 }
 
-// Racer live update functions
+// Racer view
 function loadRacerResults() {
   const resultsContainer = document.querySelector('#racer-lap-results');
   resultsContainer.innerHTML = '';
 
-  const lapResults = JSON.parse(localStorage.getItem('lapResults') || '[]');
-  lastLapResultsLength = lapResults.length;
-
-  if (lapResults.length === 0) {
-    resultsContainer.innerHTML = '<p>No lap results yet.</p>';
+  const racerId = sessionStorage.getItem('sessionRacerId');
+  if (!racerId) {
+    resultsContainer.innerHTML = '<p>No Racer ID found.</p>';
     return;
   }
 
-  lapResults.forEach((lapsData, index) => {
+  const lapResults = JSON.parse(localStorage.getItem('lapResults') || '[]');
+  lastLapResultsLength = lapResults.length;
+
+  const racesVisibleToRacer = lapResults
+    .map((laps, index) => {
+      const participated = laps.some(lap => lap.racerId === racerId);
+      return participated ? { index, laps } : null;
+    })
+    .filter(entry => entry !== null);
+
+  if (racesVisibleToRacer.length === 0) {
+    resultsContainer.innerHTML = '<p>No lap results for your Racer ID yet.</p>';
+    return;
+  }
+
+  racesVisibleToRacer.forEach(({ index, laps }) => {
     const section = document.createElement('section');
     section.classList.add('racer-lap-section');
 
     const title = document.createElement('h2');
-    title.textContent = `Lap ${index + 1} Results`;
+    title.textContent = `Race ${index + 1} Results`;
     section.appendChild(title);
 
     const list = document.createElement('ul');
-    lapsData.forEach(({ label, racerId }) => {
+    laps.forEach(({ label, racerId }) => {
       const item = document.createElement('li');
       item.textContent = `${label} - Racer ID: ${racerId}`;
       list.appendChild(item);
@@ -280,8 +291,13 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   document.querySelector('#go-to-racer')?.addEventListener('click', () => {
-    const id = generateUniqueRacerId();
-    localStorage.setItem('lastRacerId', id);
+    let sessionRacerId = sessionStorage.getItem('sessionRacerId');
+    if (!sessionRacerId) {
+      const newId = generateUniqueRacerId();
+      sessionStorage.setItem('sessionRacerId', newId);
+      sessionRacerId = newId;
+    }
+    localStorage.setItem('lastRacerId', sessionRacerId); // Optional legacy use
     navigate('/racer');
   });
 

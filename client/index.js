@@ -138,7 +138,7 @@ function endTimer() {
     isRunning = false;
   }
   saveLapResults();
-  startBtn.textContent = 'Start Next Lap';
+  startBtn.textContent = 'Start Next Race';
 }
 
 function recordLap() {

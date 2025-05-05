@@ -172,7 +172,7 @@ function createLapFromTemplate(labelText, racerId = '') {
   return clone;
 }
 
-function saveLapResults() {
+async function saveLapResults() {
   const lapsData = Array.from(lapContainer.children).map(li => {
     const label = li.querySelector('span')?.textContent || '';
     const racerId = li.querySelector('input')?.value || '';
@@ -182,6 +182,12 @@ function saveLapResults() {
   const results = JSON.parse(localStorage.getItem('lapResults') || '[]');
   results.push(lapsData);
   localStorage.setItem('lapResults', JSON.stringify(results));
+
+  fetch('/api/lap-results', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(lapsData)
+  });
 
   renderLapResults([lapsData]);
 
@@ -193,6 +199,7 @@ function saveLapResults() {
 
   saveState();
 }
+
 
 function renderLapResults(resultsArray) {
   resultsArray.forEach((lapsData, index) => {
@@ -217,7 +224,7 @@ function renderLapResults(resultsArray) {
 }
 
 // Racer view
-function loadRacerResults() {
+async function loadRacerResults() {
   const resultsContainer = document.querySelector('#racer-lap-results');
   resultsContainer.innerHTML = '';
 
@@ -227,7 +234,15 @@ function loadRacerResults() {
     return;
   }
 
-  const lapResults = JSON.parse(localStorage.getItem('lapResults') || '[]');
+  let lapResults = [];
+  try {
+    const res = await fetch('/api/lap-results');
+    lapResults = await res.json();
+  } catch {
+    resultsContainer.innerHTML = '<p>Unable to load lap results from server.</p>';
+    return;
+  }
+
   lastLapResultsLength = lapResults.length;
 
   const racesVisibleToRacer = lapResults
@@ -261,6 +276,7 @@ function loadRacerResults() {
     resultsContainer.appendChild(section);
   });
 }
+
 
 function startRacerPolling() {
   stopRacerPolling();

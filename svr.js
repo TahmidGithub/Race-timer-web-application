@@ -7,8 +7,25 @@ const app = express();
 const PORT = 8080;
 
 app.use(express.static(path.join(__dirname, 'client')));
+app.use(express.json());
 
-// Serve index.html for all SPA routes
+const lapResults = [];
+
+app.post('/api/lap-results', (req, res) => {
+  const newResults = req.body;
+  if (Array.isArray(newResults)) {
+    lapResults.push(newResults);
+    res.status(201).json({ message: 'Lap results saved' });
+  } else {
+    res.status(400).json({ error: 'Invalid lap data format' });
+  }
+});
+
+app.get('/api/lap-results', (req, res) => {
+  res.json(lapResults);
+});
+
+// SPA support
 app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, 'client/index.html'));
 });

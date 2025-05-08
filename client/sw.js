@@ -5,6 +5,8 @@ const FILES_TO_CACHE = [
   '/index.html',
   '/style.css',
   '/index.js',
+  '/marshal.js',
+  '/racer.js',
 ];
 
 // Install event: cache essential files

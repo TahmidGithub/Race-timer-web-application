@@ -25,6 +25,11 @@ app.get('/api/lap-results', (req, res) => {
   res.json(lapResults);
 });
 
+app.delete('/api/lap-results', (req, res) => {
+  lapResults.length = 0; // Clear in-memory results
+  res.status(200).json({ message: 'Lap results cleared' });
+});
+
 // SPA support
 app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, 'client/index.html'));

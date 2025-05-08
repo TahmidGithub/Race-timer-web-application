@@ -5,7 +5,7 @@
   "main": "svr.js",
   "type": "module",
   "scripts": {
-    "index": "node --watch svr && cd client"
+    "start": "node --watch svr.js"
   },
   "repository": {
     "type": "git",

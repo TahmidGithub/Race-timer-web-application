@@ -132,14 +132,42 @@ function startTimer() {
 }
 
 function endTimer() {
+  const laps = Array.from(lapContainer.children);
+
+  if (laps.length === 0) {
+    alert('Please create at least one lap before submitting.');
+    return;
+  }
+
+  const racerIds = [];
+  for (const lap of laps) {
+    const input = lap.querySelector('input');
+    const value = input.value.trim();
+
+    if (value === '') {
+      alert('Please enter a Racer ID for every lap.');
+      return;
+    }
+
+    if (racerIds.includes(value)) {
+      alert('Duplicate Racer IDs are not allowed.');
+      return;
+    }
+
+    racerIds.push(value);
+  }
+
+  // All checks passed
   if (isRunning && startTime) {
     elapsedTime += Date.now() - startTime;
     clearInterval(timer);
     isRunning = false;
   }
+
   saveLapResults();
   startBtn.textContent = 'Start Next Race';
 }
+
 
 function recordLap() {
   const time = isRunning && startTime ? Date.now() - startTime + elapsedTime : elapsedTime;
@@ -172,6 +200,12 @@ function createLapFromTemplate(labelText, racerId = '') {
   return clone;
 }
 
+function queueOfflineResult(result) {
+  const offlineQueue = JSON.parse(localStorage.getItem('offlineLapQueue') || '[]');
+  offlineQueue.push(result);
+  localStorage.setItem('offlineLapQueue', JSON.stringify(offlineQueue));
+}
+
 async function saveLapResults() {
   const lapsData = Array.from(lapContainer.children).map(li => {
     const label = li.querySelector('span')?.textContent || '';
@@ -183,11 +217,19 @@ async function saveLapResults() {
   results.push(lapsData);
   localStorage.setItem('lapResults', JSON.stringify(results));
 
-  fetch('/api/lap-results', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(lapsData)
-  });
+  if (navigator.onLine) {
+    try {
+      await fetch('/api/lap-results', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(lapsData),
+      });
+    } catch (e) {
+      queueOfflineResult(lapsData);
+    }
+  } else {
+    queueOfflineResult(lapsData);
+  }
 
   renderLapResults([lapsData]);
 
@@ -199,6 +241,7 @@ async function saveLapResults() {
 
   saveState();
 }
+
 
 
 function renderLapResults(resultsArray) {
@@ -302,6 +345,28 @@ document.addEventListener('DOMContentLoaded', () => {
 
   window.onpopstate = () => handleRoute();
 
+  window.addEventListener('online', async () => {
+    const queue = JSON.parse(localStorage.getItem('offlineLapQueue') || '[]');
+    if (queue.length === 0) return;
+  
+    for (const result of queue) {
+      try {
+        await fetch('/api/lap-results', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(result),
+        });
+      } catch (e) {
+        console.warn('Failed to sync offline result, will retry later');
+        return;
+      }
+    }
+  
+    localStorage.removeItem('offlineLapQueue');
+    console.log('Offline results synced successfully!');
+  });
+  
+
   document.querySelector('#go-to-race')?.addEventListener('click', () => {
     navigate('/race');
   });
@@ -317,14 +382,33 @@ document.addEventListener('DOMContentLoaded', () => {
     navigate('/racer');
   });
 
-  document.querySelector('#clear-results')?.addEventListener('click', () => {
+  document.querySelector('#clear-results')?.addEventListener('click', async () => {
     if (confirm('Are you sure you want to clear all lap results?')) {
+      // Clear localStorage
       localStorage.removeItem('lapResults');
+  
+      // Clear DOM results
       document.querySelectorAll('.lap-results').forEach(section => section.remove());
+  
+      // Send delete request to server
+      try {
+        const res = await fetch('/api/lap-results', { method: 'DELETE' });
+        if (!res.ok) throw new Error();
+      } catch (err) {
+        alert('Failed to clear server lap results.');
+        return;
+      }
+  
       alert('Lap results cleared!');
     }
-  });
+  });  
 
   startBtn?.addEventListener('click', startTimer);
   resetBtn?.addEventListener('click', endTimer);
 });
+
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('/sw.js').catch(err => {
+    console.error('Service worker registration failed:', err);
+  });
+}

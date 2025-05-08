@@ -66,6 +66,7 @@ document.addEventListener('DOMContentLoaded', () => {
   document.querySelector('#clear-results')?.addEventListener('click', async () => {
     if (confirm('Clear all lap results?')) {
       localStorage.removeItem('lapResults');
+      localStorage.removeItem('raceNumber'); // <- ADD THIS LINE
       document.querySelectorAll('.lap-results').forEach(e => e.remove());
       try {
         await fetch('/api/lap-results', { method: 'DELETE' });
@@ -75,7 +76,7 @@ document.addEventListener('DOMContentLoaded', () => {
       }
       alert('Results cleared!');
     }
-  });
+  });  
 
   document.querySelector('#start')?.addEventListener('click', startTimer);
   document.querySelector('#reset')?.addEventListener('click', endTimer);

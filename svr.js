@@ -11,13 +11,24 @@ app.use(express.json());
 
 const lapResults = [];
 
+function hashLaps(laps) {
+  return laps.map(l => `${l.label}-${l.racerId}`).join('|');
+}
+
 app.post('/api/lap-results', (req, res) => {
   const newResults = req.body;
-  if (Array.isArray(newResults)) {
+  if (!Array.isArray(newResults)) {
+    return res.status(400).json({ error: 'Invalid lap data format' });
+  }
+
+  const newHash = hashLaps(newResults);
+  const existingHashes = lapResults.map(hashLaps);
+
+  if (!existingHashes.includes(newHash)) {
     lapResults.push(newResults);
-    res.status(201).json({ message: 'Lap results saved' });
+    return res.status(201).json({ message: 'Lap results saved' });
   } else {
-    res.status(400).json({ error: 'Invalid lap data format' });
+    return res.status(200).json({ message: 'Duplicate lap results ignored' });
   }
 });
 

@@ -5,7 +5,7 @@
   "main": "svr.js",
   "type": "module",
   "scripts": {
-    "start": "node --watch svr.js"
+    "start": "node svr.js"
   },
   "repository": {
     "type": "git",

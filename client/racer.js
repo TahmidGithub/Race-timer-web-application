@@ -1,8 +1,8 @@
-let lastLapResultsLength = 0;
+let lastraceResultsLength = 0;
 let racerPollingInterval = null;
 
 function generateUniqueRacerId() {
-  let ids = JSON.parse(localStorage.getItem('racerIds') || '[]');
+  const ids = JSON.parse(localStorage.getItem('racerIds') || '[]');
   let newId;
   do newId = Math.floor(1000 + Math.random() * 9000);
   while (ids.includes(newId));
@@ -18,7 +18,7 @@ function showRacerId() {
 }
 
 async function loadRacerResults() {
-  const resultsContainer = document.querySelector('#racer-lap-results');
+  const resultsContainer = document.querySelector('#racer-race-results');
   resultsContainer.innerHTML = '';
   const racerId = sessionStorage.getItem('sessionRacerId');
   if (!racerId) {
@@ -26,32 +26,32 @@ async function loadRacerResults() {
     return;
   }
 
-  let lapResults = [];
+  let raceResults = [];
   try {
-    const res = await fetch('/api/lap-results');
-    lapResults = await res.json();
+    const res = await fetch('/api/race-results');
+    raceResults = await res.json();
   } catch {
-    resultsContainer.innerHTML = '<p>Unable to load lap results from server.</p>';
+    resultsContainer.innerHTML = '<p>Unable to load race results from server.</p>';
     return;
   }
 
-  lastLapResultsLength = lapResults.length;
+  lastraceResultsLength = raceResults.length;
 
-  const visibleResults = lapResults.map((laps, index) =>
-    laps.some(lap => lap.racerId === racerId) ? { index, laps } : null
+  const visibleResults = raceResults.map((race, index) =>
+    race.some(race => race.racerId === racerId) ? { index, race } : null,
   ).filter(Boolean);
 
   if (visibleResults.length === 0) {
-    resultsContainer.innerHTML = '<p>No lap results for your Racer ID yet.</p>';
+    resultsContainer.innerHTML = '<p>No race results for your Racer ID yet.</p>';
     return;
   }
 
-  visibleResults.forEach(({ index, laps }) => {
+  visibleResults.forEach(({ index, race }) => {
     const section = document.createElement('section');
-    section.classList.add('racer-lap-section');
+    section.classList.add('racer-race-section');
     section.innerHTML = `<h2>Race ${index + 1} Results</h2>`;
     const list = document.createElement('ul');
-    laps.forEach(({ label, racerId }) => {
+    race.forEach(({ label, racerId }) => {
       const li = document.createElement('li');
       li.textContent = `${label} - Racer ID: ${racerId}`;
       list.appendChild(li);
@@ -64,10 +64,10 @@ async function loadRacerResults() {
 function startRacerPolling() {
   stopRacerPolling();
   racerPollingInterval = setInterval(() => {
-    const results = JSON.parse(localStorage.getItem('lapResults') || '[]');
-    if (results.length !== lastLapResultsLength) {
+    const results = JSON.parse(localStorage.getItem('raceResults') || '[]');
+    if (results.length !== lastraceResultsLength) {
       loadRacerResults();
-      lastLapResultsLength = results.length;
+      lastraceResultsLength = results.length;
     }
   }, 2000);
 }

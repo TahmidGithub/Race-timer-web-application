@@ -9,36 +9,36 @@ const PORT = 8080;
 app.use(express.static(path.join(__dirname, 'client')));
 app.use(express.json());
 
-const lapResults = [];
+const raceResults = [];
 
-function hashLaps(laps) {
-  return laps.map(l => `${l.label}-${l.racerId}`).join('|');
+function hashrace(race) {
+  return race.map(l => `${l.label}-${l.racerId}`).join('|');
 }
 
-app.post('/api/lap-results', (req, res) => {
+app.post('/api/race-results', (req, res) => {
   const newResults = req.body;
   if (!Array.isArray(newResults)) {
-    return res.status(400).json({ error: 'Invalid lap data format' });
+    return res.status(400).json({ error: 'Invalid race data format' });
   }
 
-  const newHash = hashLaps(newResults);
-  const existingHashes = lapResults.map(hashLaps);
+  const newHash = hashrace(newResults);
+  const existingHashes = raceResults.map(hashrace);
 
   if (!existingHashes.includes(newHash)) {
-    lapResults.push(newResults);
-    return res.status(201).json({ message: 'Lap results saved' });
+    raceResults.push(newResults);
+    return res.status(201).json({ message: 'race results saved' });
   } else {
-    return res.status(200).json({ message: 'Duplicate lap results ignored' });
+    return res.status(200).json({ message: 'Duplicate race results ignored' });
   }
 });
 
-app.get('/api/lap-results', (req, res) => {
-  res.json(lapResults);
+app.get('/api/race-results', (req, res) => {
+  res.json(raceResults);
 });
 
-app.delete('/api/lap-results', (req, res) => {
-  lapResults.length = 0; // Clear in-memory results
-  res.status(200).json({ message: 'Lap results cleared' });
+app.delete('/api/race-results', (req, res) => {
+  raceResults.length = 0; // Clear in-memory results
+  res.status(200).json({ message: 'race results cleared' });
 });
 
 // SPA support

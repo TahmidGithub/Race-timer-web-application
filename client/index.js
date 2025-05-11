@@ -34,11 +34,11 @@ document.addEventListener('DOMContentLoaded', () => {
   window.onpopstate = () => handleRoute();
 
   window.addEventListener('online', async () => {
-    const queue = JSON.parse(localStorage.getItem('offlineLapQueue') || '[]');
+    const queue = JSON.parse(localStorage.getItem('offlineraceQueue') || '[]');
     if (queue.length === 0) return;
     for (const result of queue) {
       try {
-        await fetch('/api/lap-results', {
+        await fetch('/api/race-results', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(result),
@@ -48,7 +48,7 @@ document.addEventListener('DOMContentLoaded', () => {
         return;
       }
     }
-    localStorage.removeItem('offlineLapQueue');
+    localStorage.removeItem('offlineraceQueue');
     console.log('Offline results synced.');
   });
 
@@ -64,19 +64,19 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   document.querySelector('#clear-results')?.addEventListener('click', async () => {
-    if (confirm('Clear all lap results?')) {
-      localStorage.removeItem('lapResults');
+    if (confirm('Clear all race results?')) {
+      localStorage.removeItem('raceResults');
       localStorage.removeItem('raceNumber'); // <- ADD THIS LINE
-      document.querySelectorAll('.lap-results').forEach(e => e.remove());
+      document.querySelectorAll('.race-results').forEach(e => e.remove());
       try {
-        await fetch('/api/lap-results', { method: 'DELETE' });
+        await fetch('/api/race-results', { method: 'DELETE' });
       } catch {
-        alert('Failed to clear server lap results.');
+        alert('Failed to clear server race results.');
         return;
       }
       alert('Results cleared!');
     }
-  });  
+  });
 
   document.querySelector('#start')?.addEventListener('click', startTimer);
   document.querySelector('#reset')?.addEventListener('click', endTimer);

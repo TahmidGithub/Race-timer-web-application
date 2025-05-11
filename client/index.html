@@ -20,7 +20,7 @@
   <section id="racer-view" data-route="/racer" style="display: none;">
     <h1>You are a Racer!</h1>
     <p id="racer-id-display" style="font-size: 1.5em; font-weight: bold;"></p>
-    <article id="racer-lap-results"></article> <!-- New: Results will show here -->
+    <article id="racer-race-results"></article> <!-- New: Results will show here -->
   </section>
 
   <!-- Race Timer Screen -->
@@ -32,9 +32,9 @@
     <button id="clear-results">Clear Race Results</button>
     <ul id="Time"></ul>
 
-    <template id="lap-template">
+    <template id="race-template">
       <li>
-        <span class="lap-label"></span>
+        <span class="race-label"></span>
         <input type="text" placeholder="Enter Racer ID" />
       </li>
     </template>

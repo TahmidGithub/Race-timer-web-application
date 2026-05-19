@@ -1,4 +1,4 @@
-# Race Time - by up2120491
+# Race Timer
 
 ## key feature #1
 SPA navigation without reloads.
